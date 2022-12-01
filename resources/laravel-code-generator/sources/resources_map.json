@@ -1,0 +1,46 @@
+[
+    {
+        "model-name": "testBiography",
+        "resource-file": "test_biographies.json"
+    },
+    {
+        "model-name": "TestForm",
+        "resource-file": "test_forms.json"
+    },
+    {
+        "model-name": "TestForm2",
+        "resource-file": "test_form2s.json"
+    },
+    {
+        "model-name": "TestForm3",
+        "resource-file": "test_form3s.json"
+    },
+    {
+        "model-name": "TestForm4",
+        "resource-file": "test_form4s.json"
+    },
+    {
+        "model-name": "Biographyoo9",
+        "resource-file": "biographyoo9s.json"
+    },
+    {
+        "model-name": "Biography009",
+        "resource-file": "biography009s.json"
+    },
+    {
+        "model-name": "Biographyudate",
+        "resource-file": "biographyudates.json"
+    },
+    {
+        "model-name": "Biographyudate1",
+        "resource-file": "biographyudate1s.json"
+    },
+    {
+        "model-name": "Biographyudate2",
+        "resource-file": "biographyudate2s.json"
+    },
+    {
+        "model-name": "Biography",
+        "resource-file": "biographies.json"
+    }
+]
