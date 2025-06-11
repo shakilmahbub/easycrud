@@ -14,7 +14,9 @@ class BiographiesFormRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        // Allow general access for now.
+        // TODO: Implement specific authorization logic if needed later (e.g., based on user roles or permissions).
+        return true;
     }
 
     /**
