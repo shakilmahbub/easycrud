@@ -4,11 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\FacebookConnection;
-use App\Jobs\SendFacebookPostJob; // Import the Job class
-use Illuminate\Support\Facades\Log; // Log is still useful for controller-level issues
-// Http facade is no longer directly used here, but good to keep if other methods might use it.
-// use Illuminate\Support\Facades\Http;
+use App\Models\SocialConnection;
+use App\Enums\PlatformName;
+use App\Jobs\SendSocialPostJob;
+use Illuminate\Support\Facades\Log;
 use Exception;
 
 class FacebookPostController extends Controller
@@ -16,9 +15,14 @@ class FacebookPostController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $connection = $user->loadMissing('facebookConnection')->facebookConnection;
+        $connection = $user->socialConnections()
+                           ->where('platform', PlatformName::FACEBOOK)
+                           ->first();
 
-        if (!$connection || (!$connection->page_id && !$connection->group_id)) {
+        $pageId = $connection ? ($connection->metadata['page_id'] ?? null) : null;
+        $groupId = $connection ? ($connection->metadata['group_id'] ?? null) : null;
+
+        if (!$connection || (!$pageId && !$groupId)) {
             return redirect()->route('facebook.select')
                 ->with('error', 'Please select a Facebook Page or Group before creating a post.');
         }
@@ -31,48 +35,66 @@ class FacebookPostController extends Controller
         $request->validate([
             'post_content' => 'required|string|max:5000',
             'target_type' => 'required|in:page,group',
+            // Add validation for link_url if you add that field to the form
+            // 'link_url' => 'nullable|url|max:2048',
         ]);
 
         $user = Auth::user();
-        $connection = $user->loadMissing('facebookConnection')->facebookConnection;
+        $connection = $user->socialConnections()
+                           ->where('platform', PlatformName::FACEBOOK)
+                           ->first();
 
         if (!$connection) {
-            return redirect()->route('facebook.select')->with('error', 'Facebook connection not found.');
+            return redirect()->route('social.redirect', ['platform' => PlatformName::FACEBOOK])
+                             ->with('error', 'Facebook connection not found. Please reconnect.');
         }
 
-        $targetId = null;
-        $accessToken = $connection->access_token;
-
-        if (empty($accessToken)) {
+        if (empty($connection->access_token)) {
              return back()->with('error', 'Facebook access token is missing or invalid. Please reconnect your account.')->withInput();
         }
 
-        if ($request->target_type === 'page' && $connection->page_id) {
-            $targetId = $connection->page_id;
-        } elseif ($request->target_type === 'group' && $connection->group_id) {
-            $targetId = $connection->group_id;
+        $targetId = null;
+        $pageId = $connection->metadata['page_id'] ?? null;
+        $groupId = $connection->metadata['group_id'] ?? null;
+
+        if ($request->target_type === 'page' && $pageId) {
+            $targetId = $pageId;
+        } elseif ($request->target_type === 'group' && $groupId) {
+            $targetId = $groupId;
         }
 
         if (!$targetId) {
-            return back()->with('error', 'Invalid target selected or target ID not found.')->withInput();
+            return back()->with('error', 'Invalid target selected or target ID not found in your connection settings.')->withInput();
         }
 
+        // Prepare $postData array
+        $postData = [
+            'type' => 'text', // Default to text post
+            'text' => $request->post_content,
+        ];
+
+        // Example for handling a link post if a 'link_url' field were added to the form:
+        // if ($request->filled('link_url')) {
+        //    $postData['type'] = 'link';
+        //    $postData['link_url'] = $request->link_url;
+        //    // The 'text' field can serve as the message accompanying the link
+        // }
+
+        // TODO: Add logic for other post types (image, video) based on form input.
+        // This would involve adding corresponding fields to the 'create.blade.php' form
+        // and then populating $postData with 'image_url', 'video_url', etc.
+
         try {
-            // Dispatch the job
-            // Note: For local development, if the queue driver is 'sync' (default),
-            // this job will execute immediately in the same request cycle.
-            // For true background processing, configure a different queue driver (e.g., database, Redis)
-            // and run a queue worker: `php artisan queue:work`
-            SendFacebookPostJob::dispatch($targetId, $request->post_content, $accessToken, $request->target_type);
+            // Dispatch the job with the SocialConnection object, targetId, and the postData array
+            SendSocialPostJob::dispatch($connection, $targetId, $postData);
 
             session()->flash('status', 'Your post has been queued for submission to Facebook!');
             return redirect()->route('facebook.post.create');
 
         } catch (Exception $e) {
-            // This would typically catch issues with dispatching the job itself,
-            // or if the queue is 'sync' and the job throws an unhandled exception immediately.
-            Log::error('Error dispatching SendFacebookPostJob: ', [
+            Log::error('Error dispatching SendSocialPostJob: ', [
                 'user_id' => $user->id,
+                'connection_id' => $connection->id,
                 'target_id' => $targetId,
                 'exception_message' => $e->getMessage(),
             ]);
