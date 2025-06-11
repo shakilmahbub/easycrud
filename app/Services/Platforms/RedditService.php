@@ -12,5 +12,8 @@ use Laravel\Socialite\Contracts\User as SocialiteUserContract;
 
 class RedditService implements SocialPlatformServiceInterface
 {
-
+    public function post(SocialConnection $connection, string $targetId, array $postData): array
+    {
+        
+    }
 }
