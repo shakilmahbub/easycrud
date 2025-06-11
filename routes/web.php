@@ -10,6 +10,7 @@ use App\admin\Http\Controllers\admin\admin\Biography09sController;
 use App\admin\Http\Controllers\admin\admin\BiographyudatesController;
 use App\Http\Controllers\Biographyudate1sController;
 use App\Http\Controllers\Biographyudate2sController;
+use App\Http\Controllers\SocialConnectionController; // Add this import
 
 /*
 |--------------------------------------------------------------------------
@@ -26,18 +27,23 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Facebook Socialite Routes
-Route::get('/facebook/redirect', [App\Http\Controllers\FacebookController::class, 'redirectToFacebook'])->name('facebook.redirect');
-Route::get('/facebook/callback', [App\Http\Controllers\FacebookController::class, 'handleFacebookCallback'])->name('facebook.callback');
+// Generic Socialite Authentication Routes
+Route::get('/auth/{platform}/redirect', [App\Http\Controllers\SocialAuthController::class, 'redirectToProvider'])->name('social.redirect');
+Route::get('/auth/{platform}/callback', [App\Http\Controllers\SocialAuthController::class, 'handleProviderCallback'])->name('social.callback');
 
-// Facebook Page/Group Selection Routes (require authentication)
+// Facebook Specific Routes (require authentication)
 Route::middleware(['auth'])->group(function () {
-    Route::get('/facebook/select-page-group', [App\Http\Controllers\FacebookController::class, 'showSelectPageGroupForm'])->name('facebook.select');
-    Route::post('/facebook/save-page-group', [App\Http\Controllers\FacebookController::class, 'savePageGroupSelection'])->name('facebook.save_selection');
+    // Facebook Page/Group Selection (still using SocialAuthController for these Facebook-specific actions)
+    Route::get('/facebook/select-page-group', [App\Http\Controllers\SocialAuthController::class, 'showSelectPageGroupForm'])->name('facebook.select');
+    Route::post('/facebook/save-page-group', [App\Http\Controllers\SocialAuthController::class, 'savePageGroupSelection'])->name('facebook.save_selection');
 
     // Facebook Post Creation Routes
     Route::get('/facebook/create-post', [App\Http\Controllers\FacebookPostController::class, 'create'])->name('facebook.post.create');
     Route::post('/facebook/store-post', [App\Http\Controllers\FacebookPostController::class, 'store'])->name('facebook.post.store');
+
+    // Manage Social Connections
+    Route::get('/social-connections', [SocialConnectionController::class, 'index'])->name('social_connections.index');
+    Route::delete('/social-connections/{connection}', [SocialConnectionController::class, 'destroy'])->name('social_connections.destroy');
 });
 
 Route::group([

@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasMany; // Import HasMany
+// Remove old FacebookConnection import if it was explicitly there, though not visible in snippet.
+// use App\Models\FacebookConnection;
+use App\Models\SocialConnection; // Add new SocialConnection import
 
 class User extends Authenticatable
 {
@@ -21,6 +25,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'email_verified_at', // Added as it was in FacebookController user creation
     ];
 
     /**
@@ -43,10 +48,10 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the Facebook connection associated with the user.
+     * Get the social media connections for the user.
      */
-    public function facebookConnection()
+    public function socialConnections(): HasMany
     {
-        return $this->hasOne(FacebookConnection::class);
+        return $this->hasMany(SocialConnection::class);
     }
 }
