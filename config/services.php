@@ -31,4 +31,12 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'facebook' => [
+        // Credentials are placeholders and must be replaced with actual values
+        // from your Facebook App configuration.
+        'client_id' => env('FACEBOOK_APP_ID', 'FACEBOOK_APP_ID_PLACEHOLDER'),
+        'client_secret' => env('FACEBOOK_APP_SECRET', 'FACEBOOK_APP_SECRET_PLACEHOLDER'),
+        'redirect' => env('FACEBOOK_REDIRECT_URI', env('APP_URL') . '/facebook/callback'),
+    ],
+
 ];

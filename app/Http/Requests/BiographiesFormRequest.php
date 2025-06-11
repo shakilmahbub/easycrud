@@ -58,7 +58,16 @@ class BiographiesFormRequest extends FormRequest
             $data['photo'] = $this->moveFile($this->file('photo'));
         }
 
-        $data['is_retired'] = $this->has('is_retired');
+        // Correctly handle boolean for is_retired
+        if ($this->has('is_retired')) {
+            $data['is_retired'] = filter_var($this->input('is_retired'), FILTER_VALIDATE_BOOLEAN);
+        } else {
+            // If 'is_retired' is not present at all, it might be treated as false or unchanged
+            // depending on desired behaviour. For now, let's assume if not sent, it's false.
+            // Or, remove it from $data if not present to leave it unchanged in DB on PATCH.
+            // For a PUT/POST that expects all fields, providing a default is usually better.
+            $data['is_retired'] = false;
+        }
 
 
         return $data;
