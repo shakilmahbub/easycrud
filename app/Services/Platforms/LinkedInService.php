@@ -12,5 +12,9 @@ use Laravel\Socialite\Contracts\User as SocialiteUserContract;
 
 class LinkedInService implements SocialPlatformServiceInterface
 {
+    public function post(SocialConnection $connection, string $targetId, array $postData): array
+    {
+        
+    }
 
 }
