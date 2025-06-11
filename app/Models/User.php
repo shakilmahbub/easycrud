@@ -41,4 +41,12 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Get the Facebook connection associated with the user.
+     */
+    public function facebookConnection()
+    {
+        return $this->hasOne(FacebookConnection::class);
+    }
 }
