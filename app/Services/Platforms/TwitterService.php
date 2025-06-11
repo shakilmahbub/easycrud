@@ -13,4 +13,8 @@ use Laravel\Socialite\Contracts\User as SocialiteUserContract;
 class TwitterService implements SocialPlatformServiceInterface
 {
 
+    public function post(SocialConnection $connection, string $targetId, array $postData): array
+    {
+        
+    }
 }
